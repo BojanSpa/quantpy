@@ -11,7 +11,7 @@ def generateSampleData(fromDate, rows, columns, freq = '1min'):
     columns = int(columns)
     index = pd.date_range(fromDate, periods = rows, freq = freq)
     delta = (index[1] - index[0]) / pd.Timedelta(value = '365D')
-    columnNames = ['Column %d' % i for i in range(columns)]
+    columnNames = ['Column%d' % i for i in range(columns)]
     raw = np.exp(
         np.cumsum(
             (rate - 0.5 * sigma ** 2) * delta + 
