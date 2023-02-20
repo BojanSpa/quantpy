@@ -14,8 +14,9 @@ def generateSampleData(fromDate, rows, columns, freq = '1min'):
     columnNames = ['Column%d' % i for i in range(columns)]
     raw = np.exp(
         np.cumsum(
-            (rate - 0.5 * sigma ** 2) * delta + 
-            sigma * np.sqrt(delta) * np.random.standard_normal((rows, columns)), axis = 0
+            (rate - 0.5 * sigma ** 2) * delta + sigma * np.sqrt(delta) * 
+            np.random.standard_normal((rows, columns)), 
+            axis = 0
         )
     )
     raw = raw / raw[0] * 100
