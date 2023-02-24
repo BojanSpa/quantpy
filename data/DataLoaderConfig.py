@@ -6,3 +6,4 @@ class DataLoaderConfig:
     symbols: list
     date_format: str
     file_format: str
+    data_directory: str
