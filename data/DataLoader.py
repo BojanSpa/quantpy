@@ -1,4 +1,5 @@
 import requests
+import os
 from DataStore import DataStore
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -12,28 +13,34 @@ class DataLoader:
         self.store = DataStore()
 
     def load_all(self, from_date):
-        yesterday = datetime.now() - timedelta(days = 1)
-        days_diff = (yesterday - from_date).days
+        to_date = datetime.now() - timedelta(days = 1)
+        days_diff = (to_date - from_date).days
         # Increase for one day to capture from_date too
         days = list(range(days_diff + 1))
 
         for symbol in self.conf.symbols:
             for days_back in reversed(days):
-                date = yesterday - timedelta(days = days_back)
+                date = to_date - timedelta(days = days_back)
                 self.__load(symbol, date)
         
 
     def __load(self, symbol, date):
+        raw_directory = self.conf.data_directory
+        symbol_directory = f'{raw_directory}raw\{symbol}'
         file_name = self.__get_filename(symbol, date)
-        file_path = f'{self.conf.data_directory}{file_name}'
-        # Skip files which are already downloaded
-        if Path(file_path).is_file():
-            return
-        
-        uri = self.__get_uri(symbol, file_name)
-        request = requests.get(uri)
-        open(file_path, 'wb').write(request.content)
-        self.store.save(file_path, self.conf.data_directory)
+        file_path = f'{symbol_directory}\\{file_name}'
+
+        if not os.path.isdir(symbol_directory):
+            os.makedirs(symbol_directory)
+
+        # Download missing file
+        if not Path(file_path).is_file():
+            uri = self.__get_uri(symbol, file_name)
+            print(f'Loading {uri}')
+            request = requests.get(uri)
+            open(file_path, 'wb').write(request.content)
+
+        self.store.save(symbol, file_path, raw_directory, symbol_directory)
 
 
     def __get_filename(self, symbol, date):

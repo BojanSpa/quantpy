@@ -19,7 +19,7 @@ def generateSampleData(fromDate, rows, columns, freq = '1min'):
             axis = 0
         )
     )
-    raw = raw / raw[0] * 100
+    raw = raw / raw[0] * 20000
     return pd.DataFrame(raw, index = index, columns = columnNames)
 
 

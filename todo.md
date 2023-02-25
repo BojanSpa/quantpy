@@ -5,6 +5,5 @@
 	- [x] Download from start date
 	- [x] Unzip
 	- [x] Skip existing
-	- [ ] Checksum?
-	- [ ] Save as aggregated pandas storage file
-	
+	- [x] Save as aggregated pandas storage file
+	- [ ] Resambler for any timeframe

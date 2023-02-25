@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 /playground/data/
-/data/raw/
+/data/store/
 
 # C extensions
 *.so

@@ -19,5 +19,5 @@ if __name__ == '__main__':
     data_directory = binance_config['DataDirectory']
 
     config = DataLoaderConfig(base_uri, symbols, date_format, file_format, data_directory)
-    from_date = datetime(2023, 2, 22)
+    from_date = datetime(2023, 1, 1)
     DataLoader(config).load_all(from_date)
