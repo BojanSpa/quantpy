@@ -1,10 +1,9 @@
 import os
 import pandas as pd
 import tables as tb
-import tstables
-from pathlib import Path
+import tstables as tst
+
 from zipfile import ZipFile
-from datetime import datetime, timedelta
 
 
 class DataStore:
@@ -18,8 +17,8 @@ class DataStore:
         self.__sanitize(data)
         os.remove(csv_file_path)
 
-        store_file_path = f'{store_directory}\\{symbol}.h5'
-        store = tb.open_file(store_file_path, 'a')
+        store_file = f'{store_directory}\\{symbol}.h5'
+        store = tb.open_file(store_file, 'a')
         table = None
 
         symbol_group = f'/{symbol}'
@@ -27,9 +26,36 @@ class DataStore:
             table = store.create_ts('/', symbol, SymbolTableDescription)
         else:
             table_node = store.root.__getitem__(symbol_group)
-            table = tstables.get_timeseries(table_node)
+            table = tst.get_timeseries(table_node)
 
         table.append(data)
+        store.close()
+
+    def resample(self, directory, symbol, tf):
+        datafile = f'{directory}{symbol}.h5'
+        store = tb.open_file(datafile, 'a')
+        group = f'/{symbol}'
+        node = store.root.__getitem__(group)
+        table = tst.get_timeseries(node)
+        
+        fromdate = table.min_dt()
+        todate = table.max_dt()
+
+        data = table.read_range(fromdate, todate)
+        args = { 
+            'open': 'first', 
+            'high': 'max', 
+            'low': 'min', 
+            'close': 'last',
+            'volume': 'sum' }
+        tf_data = data.resample(tf, label = 'right').agg(args)
+
+        tf_storefile = f'{directory}\{symbol}_{tf}.h5'
+        tf_store = tb.open_file(tf_storefile, 'a')
+        tf_table = tf_store.create_ts('/', symbol, SymbolTableDescription)
+        tf_table.append(tf_data)
+
+        tf_store.close()
         store.close()
 
 
@@ -38,7 +64,10 @@ class DataStore:
             zip_ref.extractall(directory)
 
     def __sanitize(self, data):
-        data.drop(columns = ['close_time', 'quote_volume', 'count', 'taker_buy_volume', 'taker_buy_quote_volume', 'ignore'], inplace = True)
+        data.drop(
+            columns = ['close_time', 'quote_volume', 'count', 'taker_buy_volume', 'taker_buy_quote_volume', 'ignore'], 
+            inplace = True,
+            errors = 'ignore')
 
         data['open_time'] = pd.to_datetime(data['open_time'], unit = 'ms')
         data['open'] = pd.to_numeric(data['open'])

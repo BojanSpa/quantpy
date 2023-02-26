@@ -12,7 +12,7 @@ class DataLoader:
         self.conf = conf
         self.store = DataStore()
 
-    def load_all(self, from_date):
+    def load_all(self, from_date, load_only = False):
         to_date = datetime.now() - timedelta(days = 1)
         days_diff = (to_date - from_date).days
         # Increase for one day to capture from_date too
@@ -21,10 +21,10 @@ class DataLoader:
         for symbol in self.conf.symbols:
             for days_back in reversed(days):
                 date = to_date - timedelta(days = days_back)
-                self.__load(symbol, date)
+                self.__load(symbol, date, load_only)
         
 
-    def __load(self, symbol, date):
+    def __load(self, symbol, date, load_only):
         raw_directory = self.conf.data_directory
         symbol_directory = f'{raw_directory}raw\{symbol}'
         file_name = self.__get_filename(symbol, date)
@@ -33,6 +33,7 @@ class DataLoader:
         if not os.path.isdir(symbol_directory):
             os.makedirs(symbol_directory)
 
+
         # Download missing file
         if not Path(file_path).is_file():
             uri = self.__get_uri(symbol, file_name)
@@ -40,7 +41,8 @@ class DataLoader:
             request = requests.get(uri)
             open(file_path, 'wb').write(request.content)
 
-        self.store.save(symbol, file_path, raw_directory, symbol_directory)
+        if not load_only:
+            self.store.save(symbol, file_path, raw_directory, symbol_directory)
 
 
     def __get_filename(self, symbol, date):

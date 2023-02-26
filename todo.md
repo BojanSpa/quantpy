@@ -6,4 +6,6 @@
 	- [x] Unzip
 	- [x] Skip existing
 	- [x] Save as aggregated pandas storage file
-	- [ ] Resambler for any timeframe
+	- [ ] Basic resampling for any timeframe
+	- [ ] Load all available data
+	- [ ] CSV Sanitizer
