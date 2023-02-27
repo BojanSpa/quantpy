@@ -7,7 +7,7 @@ from datetime import datetime
 
 date_format = '%Y-%m-%d'
 
-def init_load():
+def init_load(load_only=False):
     config = load_config()
     
     binance_config = config['BINANCE']
@@ -18,8 +18,8 @@ def init_load():
     data_directory = binance_config['DataDirectory']
 
     config = DataLoaderConfig(base_uri, symbols, date_format, file_format, data_directory)
-    from_date = datetime(2022, 1, 1)
-    DataLoader(config).load_all(from_date, load_only=False)
+    from_date = datetime(2020, 1, 1)
+    DataLoader(config).load_all(from_date, load_only)
 
 
 def resample():
@@ -38,5 +38,5 @@ def load_config():
 
 
 if __name__ == '__main__':
-    init_load()
+    init_load(load_only=True)
     #resample()

@@ -8,14 +8,13 @@ from zipfile import ZipFile
 
 class DataStore:
     def save(self, symbol, file_path, store_directory, raw_directory):
-        csv_file_path = file_path.replace('zip', 'csv')
-        
         if (file_path.endswith('.zip')):
             self.__extract(file_path, raw_directory)
+            file_path = file_path.replace('zip', 'csv')
         
-        data = pd.read_csv(csv_file_path)
+        data = pd.read_csv(file_path)
         self.__sanitize(data)
-        os.remove(csv_file_path)
+        os.remove(file_path)
 
         store_file = f'{store_directory}\\{symbol}.h5'
         store = tb.open_file(store_file, 'a')
