@@ -7,4 +7,8 @@
 	- [x] Skip existing
 	- [x] Save as aggregated pandas storage file
 	- [x] Basic resampling for any timeframe
-	- [ ] CSV Sanitizer
+	- [x] CSV Sanitizer
+  
+# Visualization
+
+	- [ ] Show basic candlestick chart 

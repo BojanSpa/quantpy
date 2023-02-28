@@ -1,6 +1,6 @@
 import requests
 import os
-from DataStore import DataStore
+from data_store import DataStore
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -37,9 +37,13 @@ class DataLoader:
         # Download missing file
         if not Path(file_path).is_file():
             uri = self.__get_uri(symbol, file_name)
-            print(f'Loading {uri}')
-            request = requests.get(uri)
-            open(file_path, 'wb').write(request.content)
+            print(f'Loading: {uri}')
+            response = requests.get(uri)
+            
+            if (response.ok):
+                open(file_path, 'wb').write(response.content)
+            else:
+                print(f'Remote file unavailable!')
 
         if not load_only:
             self.store.save(symbol, file_path, raw_directory, symbol_directory)

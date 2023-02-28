@@ -3,20 +3,27 @@ import pandas as pd
 import tables as tb
 import tstables as tst
 
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile
+from csv_sanitizer import CsvSanitizer
 
 
 class DataStore:
-    def save(self, symbol, file_path, store_directory, raw_directory):
-        if (file_path.endswith('.zip')):
-            self.__extract(file_path, raw_directory)
-            file_path = file_path.replace('zip', 'csv')
-        
-        data = pd.read_csv(file_path)
-        self.__sanitize(data)
-        os.remove(file_path)
+    csv_header = 'open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore'
 
-        store_file = f'{store_directory}\\{symbol}.h5'
+    def save(self, symbol, filename, storedir, raw_directory):
+        if (filename.endswith('.zip')):
+            if not is_zipfile(filename): return
+            self.__extract(filename, raw_directory)
+            filename = filename.replace('zip', 'csv')
+        
+        sanitizer = CsvSanitizer()
+        sanitizer.clean(filename, self.csv_header) 
+
+        data = pd.read_csv(filename)
+        self.__sanitize(data)
+        os.remove(filename)
+
+        store_file = f'{storedir}\\{symbol}.h5'
         store = tb.open_file(store_file, 'a')
         table = None
 
@@ -58,9 +65,10 @@ class DataStore:
         store.close()
 
 
-    def __extract(self, file_path, directory):
-        with ZipFile(file_path, 'r') as zip_ref:
+    def __extract(self, filename, directory):
+        with ZipFile(filename, 'r') as zip_ref:
             zip_ref.extractall(directory)
+
 
     def __sanitize(self, data):
         data.drop(

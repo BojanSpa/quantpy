@@ -1,6 +1,6 @@
 from DataLoaderConfig import DataLoaderConfig
 from DataLoader import DataLoader
-from DataStore import DataStore
+from data_store import DataStore
 from configparser import ConfigParser
 from datetime import datetime
 
@@ -38,5 +38,5 @@ def load_config():
 
 
 if __name__ == '__main__':
-    init_load(load_only=True)
+    init_load(load_only=False)
     #resample()
