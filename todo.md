@@ -11,4 +11,10 @@
   
 # Visualization
 
-	- [ ] Show basic candlestick chart 
+	- [x] Show basic candlestick chart 
+
+# Backtesting
+
+	- [x] First simple backtest
+	- [ ] Backtest multiple timeframes
+	- [ ] Backtest multiple symbols on multiple timeframes
