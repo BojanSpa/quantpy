@@ -4,32 +4,32 @@ import tables as tb
 import tstables as tst
 
 from zipfile import ZipFile, is_zipfile
-from csv_sanitizer import CsvSanitizer
+from sanitizer import CsvSanitizer
 
 
 class DataStore:
     csv_header = 'open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore'
 
-    def save(self, symbol, filename, storedir, raw_directory):
-        if (filename.endswith('.zip')):
-            if not is_zipfile(filename): return
-            self.__extract(filename, raw_directory)
-            filename = filename.replace('zip', 'csv')
+    def save(self, sym, fn, storedir, rawdir):
+        if (fn.endswith('.zip')):
+            if not is_zipfile(fn): return
+            self.__extract(fn, rawdir)
+            fn = fn.replace('zip', 'csv')
         
         sanitizer = CsvSanitizer()
-        sanitizer.clean(filename, self.csv_header) 
+        sanitizer.clean(fn, self.csv_header) 
 
-        data = pd.read_csv(filename)
+        data = pd.read_csv(fn)
         self.__sanitize(data)
-        os.remove(filename)
+        os.remove(fn)
 
-        store_file = f'{storedir}\\{symbol}.h5'
+        store_file = f'{storedir}\\{sym}.h5'
         store = tb.open_file(store_file, 'a')
         table = None
 
-        symbol_group = f'/{symbol}'
+        symbol_group = f'/{sym}'
         if store.__contains__(symbol_group) == False:
-            table = store.create_ts('/', symbol, SymbolTableDescription)
+            table = store.create_ts('/', sym, SymbolTableDescription)
         else:
             table_node = store.root.__getitem__(symbol_group)
             table = tst.get_timeseries(table_node)
@@ -37,10 +37,15 @@ class DataStore:
         table.append(data)
         store.close()
 
-    def resample(self, directory, symbol, tf):
-        datafile = f'{directory}{symbol}.h5'
+    # def load(self, symbol, tf, config: ):
+
+    #     pass
+
+    def resample(self, dir, sym, tf):
+        datafile = f'{dir}{sym}.h5'
         store = tb.open_file(datafile, 'a')
-        group = f'/{symbol}'
+        group = f'/{sym}'
+
         node = store.root.__getitem__(group)
         table = tst.get_timeseries(node)
         
@@ -56,18 +61,19 @@ class DataStore:
             'volume': 'sum' }
         tf_data = data.resample(tf, label = 'right').agg(args)
 
-        tf_storefile = f'{directory}\{symbol}_{tf}.h5'
+        tf_storefile = f'{dir}\{sym}_{tf}.h5'
         tf_store = tb.open_file(tf_storefile, 'a')
-        tf_table = tf_store.create_ts('/', symbol, SymbolTableDescription)
+        tf_table = tf_store.create_ts('/', sym, SymbolTableDescription)
         tf_table.append(tf_data)
 
         tf_store.close()
         store.close()
 
 
-    def __extract(self, filename, directory):
-        with ZipFile(filename, 'r') as zip_ref:
-            zip_ref.extractall(directory)
+    def __extract(self, fn, dir):
+        with ZipFile(fn, 'r') as zip_ref:
+
+            zip_ref.extractall(dir)
 
 
     def __sanitize(self, data):

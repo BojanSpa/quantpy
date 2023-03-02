@@ -1,18 +1,20 @@
 import requests
 import os
-from data_store import DataStore
+
+from store import DataStore
 from pathlib import Path
 from datetime import datetime, timedelta
+from config import DataLoaderConfig
 
 
-class DataLoader:
+class DataProvider:
     time_frame = '1m'
 
-    def __init__(self, conf):
+    def __init__(self, conf: DataLoaderConfig):
         self.conf = conf
         self.store = DataStore()
 
-    def load_all(self, from_date, load_only = False):
+    def get_all(self, from_date, load_only = False):
         to_date = datetime.now() - timedelta(days = 1)
         days_diff = (to_date - from_date).days
         # Increase for one day to capture from_date too
@@ -21,10 +23,10 @@ class DataLoader:
         for symbol in self.conf.symbols:
             for days_back in reversed(days):
                 date = to_date - timedelta(days = days_back)
-                self.__load(symbol, date, load_only)
+                self.__get(symbol, date, load_only)
         
 
-    def __load(self, symbol, date, load_only):
+    def __get(self, symbol, date, load_only):
         raw_directory = self.conf.data_directory
         symbol_directory = f'{raw_directory}raw\{symbol}'
         file_name = self.__get_filename(symbol, date)
