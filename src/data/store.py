@@ -4,11 +4,17 @@ import tables as tb
 import tstables as tst
 
 from zipfile import ZipFile, is_zipfile
-from sanitizer import CsvSanitizer
+from data.config import GeneralConfig
+from data.sanitizer import CsvSanitizer
 
 
 class DataStore:
     csv_header = 'open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore'
+
+
+    def __init__(self, config):
+        self.config = config
+
 
     def save(self, sym, fn, storedir, rawdir):
         if (fn.endswith('.zip')):
@@ -37,9 +43,24 @@ class DataStore:
         table.append(data)
         store.close()
 
-    # def load(self, symbol, tf, config: ):
 
-    #     pass
+    def load(self, symbol, tf = None, fd = None, td = None):
+        if tf is not None: 
+            tf = f'_{tf}'
+        else:
+            tf = ''
+
+        fn = f'{self.config.storedir}{symbol}{tf}.h5'
+        file = tb.open_file(fn, 'a')
+        group = f'/{symbol}'
+        node = file.root.__getitem__(group)
+        table = tst.get_timeseries(node)
+
+        if fd is None: fd = table.min_dt()
+        if td is None: td = table.max_dt()
+
+        return table.read_range(fd, td)
+
 
     def resample(self, dir, sym, tf):
         datafile = f'{dir}{sym}.h5'

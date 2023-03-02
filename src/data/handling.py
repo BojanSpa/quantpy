@@ -1,7 +1,7 @@
-from loader import DataProvider
-from store import DataStore
+from data.config import load_config
+from data.loader import DataProvider
+from data.store import DataStore
 from datetime import datetime
-from config import load_config
 
 
 date_format = '%Y-%m-%d'

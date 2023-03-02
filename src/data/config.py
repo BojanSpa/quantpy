@@ -1,6 +1,13 @@
 from dataclasses import dataclass
 from configparser import ConfigParser
 
+
+@dataclass
+class SectionName:
+    general = 'GENERAL'
+    binance = 'BINANCE'
+
+
 @dataclass
 class GeneralConfig:
     storedir: str
