@@ -16,5 +16,13 @@
 # Backtesting
 
 	- [x] First simple backtest
+	- [x] Basic VectorBacktester
+	- [ ] DMI Tests (Almin liefert Long/Short Signale)
 	- [ ] Backtest multiple timeframes
 	- [ ] Backtest multiple symbols on multiple timeframes
+
+# Indicator
+
+	- [ ] Port moments indicator
+	- [ ] Port hurst indicator
+	- [ ] Port historic volatility indicator

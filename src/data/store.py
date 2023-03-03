@@ -4,7 +4,7 @@ import tables as tb
 import tstables as tst
 
 from zipfile import ZipFile, is_zipfile
-from sanitizer import CsvSanitizer
+from data.sanitizer import CsvSanitizer
 
 
 class DataStore:
