@@ -1,6 +1,6 @@
-from data.config import load_config
-from data.loader import DataProvider
-from data.store import DataStore
+from config import load_config
+from loader import DataProvider
+from store import DataStore
 from datetime import datetime
 
 
@@ -14,9 +14,9 @@ def init_load(load_only=False):
 
 def resample():
     config = load_config('config', 'GENERAL')
-    DataStore().resample(config.storedir, 'ETHUSDT', '4h')
+    DataStore().resample(config.storedir, 'ETHUSDT', '5min')
 
 
 if __name__ == '__main__':
-    # init_load(load_only=False)
-    resample()
+    init_load(load_only=False)
+    # resample()

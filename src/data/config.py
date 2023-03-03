@@ -20,6 +20,7 @@ class GeneralConfig:
 class DataLoaderConfig:
     base_uri: str
     symbols: list
+    timeframes: list
     date_format: str
     file_format: str
     data_directory: str
@@ -27,8 +28,9 @@ class DataLoaderConfig:
     def init(conf):
         return DataLoaderConfig(
             conf['BaseUri'],
-            conf['Symbols'],
-            conf['Timeframes'],
+            conf['Symbols'].split(', '),
+            conf['Timeframes'].split(', '),
+            '%Y-%m-%d',
             conf['FileFormat'],
             conf['DataDirectory'])
 

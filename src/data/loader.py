@@ -12,7 +12,7 @@ class DataProvider:
 
     def __init__(self, conf: DataLoaderConfig):
         self.conf = conf
-        self.store = DataStore()
+        self.store = DataStore(conf)
 
     def get_all(self, from_date, load_only = False):
         to_date = datetime.now() - timedelta(days = 1)
@@ -34,7 +34,6 @@ class DataProvider:
 
         if not os.path.isdir(symbol_directory):
             os.makedirs(symbol_directory)
-
 
         # Download missing file
         if not Path(file_path).is_file():
