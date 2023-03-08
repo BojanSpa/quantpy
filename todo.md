@@ -8,10 +8,16 @@
 	- [x] Save as aggregated pandas storage file
 	- [x] Basic resampling for any timeframe
 	- [x] CSV Sanitizer
+	- [ ] BinanceHistoricDataProvider
+      	- [ ] Monthly
+      	- [ ] Daily
   
 # Visualization
 
-	- [x] Show basic candlestick chart 
+	- [x] Show basic candlestick chart
+	- [x] Tabulated backtest result 
+	- [ ] Show equity
+	- [ ] Show drawdown
 
 # Backtesting
 

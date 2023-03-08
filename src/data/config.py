@@ -23,7 +23,7 @@ class DataLoaderConfig:
     timeframes: list
     date_format: str
     file_format: str
-    data_directory: str
+    storedir: str
 
     def init(conf):
         return DataLoaderConfig(

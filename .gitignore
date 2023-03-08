@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 /playground/data/
 /data/store/
+/.vscode
 
 # C extensions
 *.so

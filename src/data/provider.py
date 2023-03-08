@@ -27,7 +27,7 @@ class DataProvider:
         
 
     def __get(self, symbol, date, load_only):
-        raw_directory = self.conf.data_directory
+        raw_directory = self.conf.storedir
         symbol_directory = f'{raw_directory}raw\{symbol}'
         file_name = self.__get_filename(symbol, date)
         file_path = f'{symbol_directory}\\{file_name}'

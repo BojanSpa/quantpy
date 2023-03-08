@@ -43,22 +43,26 @@ class DataStore:
         store.close()
 
 
-    def load(self, symbol, tf = None, fd = None, td = None):
-        if tf is not None: 
-            tf = f'_{tf}'
+    def load(self, symbol, timeframe = None, fromdate = None, todate = None, simple=False):
+        if timeframe is not None: 
+            timeframe = f'_{timeframe}'
         else:
-            tf = ''
+            timeframe = ''
 
-        fn = f'{self.config.storedir}{symbol}{tf}.h5'
+        fn = f'{self.config.storedir}{symbol}{timeframe}.h5'
         file = tb.open_file(fn, 'a')
         group = f'/{symbol}'
         node = file.root.__getitem__(group)
         table = tst.get_timeseries(node)
 
-        if fd is None: fd = table.min_dt()
-        if td is None: td = table.max_dt()
+        if fromdate is None: fromdate = table.min_dt()
+        if todate is None: todate = table.max_dt()
 
-        return table.read_range(fd, td)
+        data = table.read_range(fromdate, todate)
+        if simple:
+            data.drop(columns = ['open', 'high', 'low', 'volume'], inplace=True)
+
+        return data
 
 
     def resample(self, dir, sym, tf):
