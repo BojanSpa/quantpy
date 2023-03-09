@@ -1,10 +1,10 @@
 import requests
 import os
 
-from store import DataStore
+from data.config import DataLoaderConfig
+from data.store import DataStore
 from pathlib import Path
 from datetime import datetime, timedelta
-from config import DataLoaderConfig
 
 
 class DataProvider:

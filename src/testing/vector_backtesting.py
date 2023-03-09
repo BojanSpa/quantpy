@@ -1,5 +1,7 @@
 import gc
 import numpy as np
+import pandas as pd
+import pandas_ta as pdta
 from typing import List
 from dataclasses import dataclass
 from data.store import DataStore
@@ -20,6 +22,7 @@ class VectorStrategyReport:
     tf: str
     returns: float
     strat_returns: float
+    equity: float
 
 
 class VectorStrategy:
@@ -29,15 +32,16 @@ class VectorStrategy:
     def run(self, data):
         pass
 
-
     def calc_returns(self, data):
         data['returns'] = np.log(data.close / data.close.shift(1))
         data['creturns'] = data.returns.cumsum().apply(np.exp)
 
+    def calc_equity(self, data, init_equity):
+        data['equity'] = data.cum_strat_returns * init_equity
 
-    #TODO: Calculate equity
-    def calc_equity(self, data):
-        data['equity'] = data.c_strat_returns * 1000
+    def calc_drawdown(self, data):
+        data['max_equity'] = data.equity.cummax()
+        data['drawdown'] = (data.max_equity - data.equity) * (-1)
 
 
 class SmaCrossVectorStrategy(VectorStrategy):
@@ -51,7 +55,7 @@ class SmaCrossVectorStrategy(VectorStrategy):
         self.args = f"{self.fast}_{self.slow}"
 
 
-    def run(self, data):
+    def run(self, data, init_equity=1000):
         super().calc_returns(data)
 
         data['ma_fast'] = data.close.rolling(self.fast).mean()
@@ -61,11 +65,37 @@ class SmaCrossVectorStrategy(VectorStrategy):
         data.dropna(inplace=True)
 
         data['strat_returns'] = data.position.shift(1) * data.returns
-        data['c_strat_returns'] = data.strat_returns.cumsum().apply(np.exp)
+        data['cum_strat_returns'] = data.strat_returns.cumsum().apply(np.exp)
 
-        super().calc_equity(data)
+        super().calc_equity(data, init_equity)
+        super().calc_drawdown(data)
 
         return data
+
+
+class DmiVectorStrategy(VectorStrategy):
+    name = 'DMI'
+
+    def __init__(self, length):
+        self.length = length
+        self.args = length
+        pass
+
+
+    def run(self, data: pd.DataFrame, init_equity=1000):
+        super().calc_returns(data)
+
+        data[['dm_p', 'dm_n']] = pdta.dm(data.high, data.low, self.length)
+        data['position'] = np.where(data.dm_p > data.dm_n, 1, -1)
+        data.dropna(inplace=True)
+
+        data['strat_returns'] = data.position.shift(1) * data.returns
+        data['cum_strat_returns'] = data.strat_returns.cumsum().apply(np.exp)
+
+        super().calc_equity(data, init_equity)
+        super().calc_drawdown(data)
+
+        return data  
 
 
 class VectorBacktester:
@@ -74,7 +104,7 @@ class VectorBacktester:
         self.strategies = strategies
 
     
-    def run(self, simple=True):
+    def run_all(self, simple=False):
         symbols = self.config.symbols
         timeframes = self.config.timeframes
 
@@ -83,12 +113,12 @@ class VectorBacktester:
                 data = DataStore(self.config).load(symbol, timeframe, simple=simple)
                 
                 for strategy in self.strategies:
-                    yield self.__run_internal(symbol, timeframe, strategy, data)
+                    yield self.run(symbol, timeframe, strategy, data)
 
                 self.__release(data)
 
 
-    def __run_internal(self, symbol, timeframe, strategy, data):
+    def run(self, symbol, timeframe, strategy, data):
         data = strategy.run(data)
         lrow = data.iloc[-1] 
 
@@ -98,7 +128,8 @@ class VectorBacktester:
             symbol,
             timeframe,
             lrow.creturns, 
-            lrow.c_strat_returns)
+            lrow.cum_strat_returns,
+            lrow.equity)
 
 
     def __release(self, data):
