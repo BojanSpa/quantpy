@@ -32,9 +32,10 @@ def plot(data):
 
 def run_strategy():
     config = GeneralConfig('E:/store/')
-    data = DataStore(config).load('ATOMUSDT', '15min')
+    data = DataStore(config).load('BNBUSDT', '1h')
 
-    strat = DmiVectorStrategy(10)
+    # strat = DmiVectorStrategy(30)
+    strat = SmaCrossVectorStrategy(30, 120)
     data = strat.run(data)
     plot(data)
 
@@ -81,8 +82,8 @@ def resample():
 
 
 if __name__ == '__main__':
+    run_backtest()
+    # run_strategy()
     # init_load(load_only=False)
     # resample()
-    # run_strategy()
-    run_backtest()    
     

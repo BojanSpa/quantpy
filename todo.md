@@ -1,14 +1,14 @@
 # Data handling
 
-	- [x] Download one sample daily 1m data
-	- [x] Download for list of symbols
-	- [x] Download from start date
-	- [x] Unzip
-	- [x] Skip existing
-	- [x] Save as aggregated pandas storage file
-	- [x] Basic resampling for any timeframe
-	- [x] CSV Sanitizer
-	- [x] Resample on demand 
+	- [X] Download one sample daily 1m data
+	- [X] Download for list of symbols
+	- [X] Download from start date
+	- [X] Unzip
+	- [X] Skip existing
+	- [X] Save as aggregated pandas storage file
+	- [X] Basic resampling for any timeframe
+	- [X] CSV Sanitizer
+	- [X] Resample on demand 
 	- [ ] Create base symbol store if not existing
 	- [ ] Load symbol raw data if not existing
     	- [ ] Load only if not existing
@@ -18,22 +18,25 @@
   
 # Visualization
 
-	- [x] Show basic candlestick chart
-	- [x] Tabulated backtest result 
-	- [x] Show equity
-	- [x] Show drawdown
+	- [X] Show basic candlestick chart
+	- [X] Tabulated backtest result 
+	- [X] Show equity
+	- [X] Show drawdown
 
 # Backtesting
 
-	- [x] First simple backtest
-	- [x] Basic VectorBacktester
-	- [x] DMI tests basic
-	- [x] Backtest multiple timeframes
-	- [x] Backtest multiple symbols on multiple timeframes
+	- [X] First simple backtest
+	- [X] Basic VectorBacktester
+	- [X] DMI tests basic
+	- [X] Backtest multiple timeframes
+	- [X] Backtest multiple symbols on multiple timeframes
+	- [X] BUG: Returns vary for same symbol/tf after each strategy
+    	- [X] Calculate returns at resampling
 
 # Indicator
 
-	- [x] Include pandas TA lib (https://github.com/twopirllc/pandas-ta)
+	- [X] Include pandas TA lib (https://github.com/twopirllc/pandas-ta)
+	- [ ] Parameter range (One strategy instance per type)
 	- [ ] Port moments indicator
 	- [ ] Port hurst indicator
 	- [ ] Port historic volatility indicator

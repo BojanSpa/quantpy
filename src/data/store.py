@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import pandas_ta as pdta
 import tables as tb
 import tstables as tst
 
@@ -94,6 +95,8 @@ class DataStore:
             'volume': 'sum' }
         tf_data = data.resample(timeframe, label='right').agg(args)
 
+        self.__calc_returns(tf_data)
+
         tf_storefile = f'{dir}\{symbol}_{timeframe}.h5'
         tf_store = tb.open_file(tf_storefile, 'a')
         tf_table = tf_store.create_ts('/', symbol, SymbolTableDescription)
@@ -103,10 +106,14 @@ class DataStore:
         store.close()
         print('Resampling done')
 
+    
+    def __calc_returns(self, data):
+        data['log_return'] = pdta.log_return(data.close)
+        data['cum_return'] = pdta.log_return(data.close, cumulative=True)
+
 
     def __extract(self, fn, dir):
         with ZipFile(fn, 'r') as zip_ref:
-
             zip_ref.extractall(dir)
 
 
@@ -133,3 +140,5 @@ class SymbolTableDescription(tb.IsDescription):
     low = tb.Float64Col(pos = 3)
     close = tb.Float64Col(pos = 4)
     volume = tb.Float64Col(pos = 5)
+    log_return = tb.Float64Col(pos = 6)
+    cum_return = tb.Float64Col(pos = 7)
