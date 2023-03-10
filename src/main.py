@@ -25,13 +25,14 @@ def plot(data):
 
     fig.update_yaxes(title_text="Equity/Drawdown", showgrid=False, secondary_y=False)
     fig.update_yaxes(title_text="Price", secondary_y=True)
+    fig.update_layout(bargap=0, bargroupgap=0)
 
     fig.show()
 
 
 def run_strategy():
     config = GeneralConfig('E:/store/')
-    data = DataStore(config).load('BTCUSDT', '4h')
+    data = DataStore(config).load('ATOMUSDT', '15min')
 
     strat = DmiVectorStrategy(10)
     data = strat.run(data)
@@ -46,13 +47,6 @@ def run_backtest():
         symbols=config.symbols,
         timeframes=config.timeframes
     )
-
-    # strategies = [
-    #     SmaCrossVectorStrategy(10, 40),
-    #     SmaCrossVectorStrategy(20, 80),
-    #     SmaCrossVectorStrategy(30, 120),
-    #     SmaCrossVectorStrategy(40, 160),
-    #     SmaCrossVectorStrategy(50, 200)]
 
     strategies = [
         DmiVectorStrategy(10),

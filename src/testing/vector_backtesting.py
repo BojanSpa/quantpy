@@ -120,7 +120,7 @@ class VectorBacktester:
 
     def run(self, symbol, timeframe, strategy, data):
         data = strategy.run(data)
-        lrow = data.iloc[-1] 
+        lrow = data.iloc[-1]
 
         return VectorStrategyReport(
             strategy.name,

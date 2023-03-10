@@ -8,8 +8,11 @@
 	- [x] Save as aggregated pandas storage file
 	- [x] Basic resampling for any timeframe
 	- [x] CSV Sanitizer
-	- [o] Resample on demand 
-	- [ ] BinanceHistoricDataProvider
+	- [x] Resample on demand 
+	- [ ] Create base symbol store if not existing
+	- [ ] Load symbol raw data if not existing
+    	- [ ] Load only if not existing
+	- [ ] Refactore generic/binance data provider
       	- [ ] Monthly
       	- [ ] Daily
   

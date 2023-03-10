@@ -3,6 +3,7 @@ import pandas as pd
 import tables as tb
 import tstables as tst
 
+from pathlib import Path
 from zipfile import ZipFile, is_zipfile
 from data.sanitizer import CsvSanitizer
 
@@ -44,13 +45,7 @@ class DataStore:
 
 
     def load(self, symbol, timeframe = None, fromdate = None, todate = None, simple=False):
-        if timeframe is not None: 
-            timeframe = f'_{timeframe}'
-        else:
-            timeframe = ''
-
-        fn = f'{self.config.storedir}{symbol}{timeframe}.h5'
-        file = tb.open_file(fn, 'a')
+        file = self.__get_file(symbol, timeframe) 
         group = f'/{symbol}'
         node = file.root.__getitem__(group)
         table = tst.get_timeseries(node)
@@ -65,10 +60,24 @@ class DataStore:
         return data
 
 
-    def resample(self, dir, sym, tf):
-        datafile = f'{dir}{sym}.h5'
+    def __get_file(self, symbol, timeframe):
+        filename = f'{symbol}.h5'
+        if timeframe is not None:
+            filename = f'{symbol}_{timeframe}.h5'
+
+        filepath = f'{self.config.storedir}{filename}'
+
+        if not Path(filepath).is_file():
+            print(f"File '{filename}' not found, resampling...")
+            self.resample(self.config.storedir, symbol, timeframe)
+
+        return tb.open_file(filepath, 'a')
+
+
+    def resample(self, dir, symbol, timeframe):
+        datafile = f'{dir}{symbol}.h5'
         store = tb.open_file(datafile, 'a')
-        group = f'/{sym}'
+        group = f'/{symbol}'
 
         node = store.root.__getitem__(group)
         table = tst.get_timeseries(node)
@@ -83,15 +92,16 @@ class DataStore:
             'low': 'min', 
             'close': 'last',
             'volume': 'sum' }
-        tf_data = data.resample(tf, label = 'right').agg(args)
+        tf_data = data.resample(timeframe, label='right').agg(args)
 
-        tf_storefile = f'{dir}\{sym}_{tf}.h5'
+        tf_storefile = f'{dir}\{symbol}_{timeframe}.h5'
         tf_store = tb.open_file(tf_storefile, 'a')
-        tf_table = tf_store.create_ts('/', sym, SymbolTableDescription)
+        tf_table = tf_store.create_ts('/', symbol, SymbolTableDescription)
         tf_table.append(tf_data)
 
         tf_store.close()
         store.close()
+        print('Resampling done')
 
 
     def __extract(self, fn, dir):
