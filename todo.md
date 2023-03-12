@@ -9,12 +9,12 @@
 	- [X] Basic resampling for any timeframe
 	- [X] CSV Sanitizer
 	- [X] Resample on demand 
-	- [ ] Create base symbol store if not existing
-	- [ ] Load symbol raw data if not existing
-    	- [ ] Load only if not existing
-	- [ ] Refactore generic/binance data provider
-      	- [ ] Monthly
-      	- [ ] Daily
+	- [X] Fetch raw binance data in parallel
+	- [O] Initial symbol storage as DataFrame with parallel execution
+	- [ ] Resampling with parallel execution
+    	- Own directory per data source (binance), asset type (spot/future), and symbol
+    	- Resampling to default timeframes
+    	- Overwrite flag
   
 # Visualization
 

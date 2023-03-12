@@ -1,14 +1,13 @@
-import json
+import data.provider as dp
 
 from datetime import datetime
 from tabulate import tabulate
 from utils import datetime_extensions
 from data.config import load_config
-from data.provider import BinanceAssetType, BinanceDataProvider, get_all_parallel
 
 
 if __name__ == '__main__':
     conf = load_config(section='BINANCE')
-    provider = BinanceDataProvider(conf, BinanceAssetType.PERP, 'USDT')
-    # get_all_parallel(provider)
-    provider.get_all()
+    provider = dp.BinanceDataProvider(conf, dp.BinanceAssetType.SPOT, 'USDT')
+    dp.get_all_parallel(provider)
+    # provider.get_all()

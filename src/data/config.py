@@ -16,14 +16,16 @@ class GeneralConfig:
 
 @dataclass
 class BianceConfig(GeneralConfig):
-    klines_uri: str
+    klines_uri_monthly: str
+    klines_uri_daily: str
     spot_suburi: str
     perp_suburi: str
     coin_suburi: str
     klinesdir: str
     symbols: list
     timeframes: list
-    date_format: str
+    date_format_monthly: str
+    date_format_daily: str
     file_format: str
 
     def init(conf, section_name):
@@ -34,20 +36,21 @@ class BianceConfig(GeneralConfig):
         return BianceConfig(
             rawdir,
             storedir,
-            section['KlinesUri'],
+            section['KlinesUriMonthly'],
+            section['KlinesUriDaily'],
             section['SpotSubUri'],
             section['PerpSubUri'],
             section['CoinSubUri'],
             section['KlinesDir'],
             section['Symbols'].split(', '),
             section['Timeframes'].split(', '),
+            '%Y-%m',
             '%Y-%m-%d',
             section['FileFormat'])
 
 
 def load_config(name='config', section=None):
     config = __get(name)
-    
     match section:
         case 'BINANCE':
             return BianceConfig.init(config, section)
