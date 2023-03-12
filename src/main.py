@@ -6,7 +6,7 @@ from dataclasses import asdict
 from datetime import datetime
 from tabulate import tabulate
 from data.config import GeneralConfig, load_config
-from data.provider import DataProvider
+from data.provider import BinanceDataProvider
 from data.store import DataStore
 from testing.vector_backtesting import SmaCrossVectorStrategy, DmiVectorStrategy, VectorBacktestConfig, VectorBacktester
 
@@ -73,7 +73,7 @@ def run_backtest():
 def init_load(load_only=False):
     config = load_config('config', 'BINANCE')
     from_date = datetime(2020, 1, 1)
-    DataProvider(config).get_all(from_date, load_only)
+    BinanceDataProvider(config).get_all(from_date, load_only)
 
 
 def resample():

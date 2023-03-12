@@ -10,40 +10,49 @@ class SectionName:
 
 @dataclass
 class GeneralConfig:
+    rawdir: str
     storedir: str
-
-    def init(conf):
-        return GeneralConfig(conf['StoreDirectory']) 
 
 
 @dataclass
-class DataLoaderConfig:
-    base_uri: str
+class BianceConfig(GeneralConfig):
+    klines_uri: str
+    spot_suburi: str
+    perp_suburi: str
+    coin_suburi: str
+    klinesdir: str
     symbols: list
     timeframes: list
     date_format: str
     file_format: str
-    storedir: str
 
-    def init(conf):
-        return DataLoaderConfig(
-            conf['BaseUri'],
-            conf['Symbols'].split(', '),
-            conf['Timeframes'].split(', '),
+    def init(conf, section_name):
+        rawdir = conf['GENERAL']['RawDir']
+        storedir = conf['GENERAL']['StoreDir'] 
+        section = conf[section_name]
+        
+        return BianceConfig(
+            rawdir,
+            storedir,
+            section['KlinesUri'],
+            section['SpotSubUri'],
+            section['PerpSubUri'],
+            section['CoinSubUri'],
+            section['KlinesDir'],
+            section['Symbols'].split(', '),
+            section['Timeframes'].split(', '),
             '%Y-%m-%d',
-            conf['FileFormat'],
-            conf['DataDirectory'])
+            section['FileFormat'])
 
 
-def load_config(name: str, section_name: str):
+def load_config(name='config', section=None):
     config = __get(name)
-    section = config[section_name]
-
-    match section_name:
-        case 'GENERAL':
-            return GeneralConfig.init(section)
+    
+    match section:
         case 'BINANCE':
-            return DataLoaderConfig.init(section)
+            return BianceConfig.init(config, section)
+        case None, _:
+            raise Exception('Unknown config section')
 
 
 def __get(name):
