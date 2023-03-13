@@ -6,16 +6,22 @@ from enum import Enum
 from pathlib import Path
 from datetime import datetime, timedelta
 from multiprocessing import Pool
-from data.config import BianceConfig
-from data.store import DataStore
+from data.config import BinanceConfig
   
 
-class BinanceAssetType(Enum):
+class AssetType(Enum):
     SPOT = 'spot'
     PERP = 'um'
     COIN = 'cm'
 
-class BinanceDataTimeframe(Enum):
+
+class PairType(Enum):
+    USDT = 'USDT'
+    BUSDT = 'BUSD'
+    BTC = 'BTC'
+    ETH = 'ETH'
+
+class DataTimeframe(Enum):
     DAILY = 'daily'
     MONTHLY = 'monthly'
 
@@ -38,9 +44,8 @@ class BinanceDataProvider:
     TF = '1m'
     START_DATE = datetime(2017, 1, 1)
 
-    def __init__(self, conf: BianceConfig, asset_type, pair_type):
+    def __init__(self, conf: BinanceConfig, asset_type, pair_type):
         self.conf = conf
-        self.store = DataStore(conf)
         self.asset_type = asset_type
         self.pair_type = pair_type
 
@@ -72,12 +77,12 @@ class BinanceDataProvider:
         symbol = symbol_info['symbol']
         onboard_date = symbol_info['onboard_date']
         
-        months_diff = datetime.diff_months(onboard_date, to_date)
+        months_diff = datetime.months_between(onboard_date, to_date)
         months = list(range(months_diff))
 
         for months_back in reversed(months):
             date = to_date - pd.DateOffset(months=months_back)
-            self.__fetch_file(symbol, date, BinanceDataTimeframe.MONTHLY)
+            self.__fetch_file(symbol, date, DataTimeframe.MONTHLY)
 
 
     def get_daily_symbol_files(self, symbol_info):
@@ -91,7 +96,7 @@ class BinanceDataProvider:
 
         for days_back in reversed(days):
             date = to_date - timedelta(days=days_back)
-            self.__fetch_file(symbol, date, BinanceDataTimeframe.DAILY)
+            self.__fetch_file(symbol, date, DataTimeframe.DAILY)
             
 
     def __fetch_file(self, symbol, date, data_timeframe):
@@ -102,7 +107,7 @@ class BinanceDataProvider:
         filename = None
         uri = None
         
-        if data_timeframe is BinanceDataTimeframe.MONTHLY:
+        if data_timeframe is DataTimeframe.MONTHLY:
             symbolpath = f'{rawdir}{klinesdir}{self.asset_type.value}\\monthly\\{symbol}'
             filename = self.__get_filename(symbol, date, self.conf.date_format_monthly)
             uri = self.conf.klines_uri_monthly
@@ -138,11 +143,11 @@ class BinanceDataProvider:
 
     def __get_info_uri(self, asset_type):
         match asset_type:
-            case BinanceAssetType.SPOT:
+            case AssetType.SPOT:
                 return 'https://api.binance.com/api/v3/exchangeInfo'
-            case BinanceAssetType.PERP:
+            case AssetType.PERP:
                 return 'https://fapi.binance.com/fapi/v1/exchangeInfo'
-            case BinanceAssetType.COIN:
+            case AssetType.COIN:
                 return 'https://dapi.binance.com/dapi/v1/exchangeInfo'
             case None:
                 raise Exception('Asset type not supported')
@@ -151,9 +156,9 @@ class BinanceDataProvider:
 
     def __asset_suburi(self):
         match self.asset_type:
-            case BinanceAssetType.SPOT: return self.conf.spot_suburi
-            case BinanceAssetType.PERP: return self.conf.perp_suburi
-            case BinanceAssetType.COIN: return self.conf.coin_suburi
+            case AssetType.SPOT: return self.conf.spot_suburi
+            case AssetType.PERP: return self.conf.perp_suburi
+            case AssetType.COIN: return self.conf.coin_suburi
             case _: raise Exception(f"Asset type '{self.asset_type}' is not supported")
 
     def __get_filename(self, symbol, date, dateformat):

@@ -8,6 +8,6 @@ from data.config import load_config
 
 if __name__ == '__main__':
     conf = load_config(section='BINANCE')
-    provider = dp.BinanceDataProvider(conf, dp.BinanceAssetType.SPOT, 'USDT')
+    provider = dp.BinanceDataProvider(conf, dp.AssetType.SPOT, 'USDT')
     dp.get_all_parallel(provider)
     # provider.get_all()

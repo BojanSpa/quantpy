@@ -1,42 +1,149 @@
 import os
+import re
 import pandas as pd
 import pandas_ta as pdta
 import tables as tb
 import tstables as tst
 
 from pathlib import Path
+from datetime import datetime
 from zipfile import ZipFile, is_zipfile
+from multiprocessing import Pool
+from utils import datetime_extensions
 from data.sanitizer import CsvSanitizer
+from data.provider import AssetType
+
+
+def create_all_parallel(provider, store):
+    symbol_infos = provider.get_symbol_infos()
+    symbols = symbol_infos.map(lambda si: si['symbol'])
+    with Pool() as pool:
+        pool.map(store.save_all, symbols)
+
+
+class SymbolTableDescription(tb.IsDescription):
+    timestamp = tb.Int64Col(pos = 0)
+    open = tb.Float64Col(pos = 1)
+    high = tb.Float64Col(pos = 2)
+    low = tb.Float64Col(pos = 3)
+    close = tb.Float64Col(pos = 4)
+    volume = tb.Float64Col(pos = 5)
+    log_return = tb.Float64Col(pos = 6)
+    cum_return = tb.Float64Col(pos = 7)
+
+
+def get_rawdatadir(conf, asset_type):
+    rawdir = conf.rawdir
+    klinesdir = conf.klinesdir
+    assetdir = None
+
+    match asset_type:
+        case AssetType.SPOT:
+            assetdir = 'spot'
+        case AssetType.PERP:
+            assetdir = 'um'
+        case AssetType.COIN:
+            assetdir = 'cm'
+
+    return f'{rawdir}{klinesdir}{assetdir}\\[[RANGE]]\\'
 
 
 class DataStore:
     csv_header = 'open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore'
 
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, conf, provider, asset_type):
+        self.conf = conf
+        self.provider = provider
+        self.asset_type = asset_type
+        self.rawdatadir = get_rawdatadir(conf, asset_type)
+        self.sanitizer = CsvSanitizer()
 
 
-    def save(self, sym, fn, storedir, rawdir):
-        if (fn.endswith('.zip')):
-            if not is_zipfile(fn): return
-            self.__extract(fn, rawdir)
-            fn = fn.replace('zip', 'csv')
+    def create_all(self):
+        symbol_infos = self.provider.get_symbol_infos()
+        symbols = symbol_infos.map(lambda syminf: syminf['symbol'])
+        
+        for symbol in symbols:
+            self.create_symbol_store(symbol)
+
+
+    def create_symbol_store(self, symbol, symboldir=None):
+        if symboldir is None: symboldir = self.__get_symboldir(symbol)
+        
+        datafiles = os.listdir(symboldir)
+        if not datafiles:
+            print("No files for symbol '{symbol}' found")
+            return
+
+        filesets = sorted(self.__get_filedates(symbol, datafiles), key=lambda fd: fd['date'])
+
+        filerange_valid = self.__is_filerange_valid(filesets)
+        if not filerange_valid:
+            print("Range of datafiles incomplete")
+            return
+
+        
+        
+
+    def __get_filedates(self, symbol, datafiles):
+        ext_len = 4
+        il = len(symbol) + len('-1m-')
+        ir = len(datafiles[0]) - ext_len
+        format = self.conf.date_format_monthly
+
+        for datafile in datafiles:
+            filedate = datetime.strptime(datafile[il:ir], format) 
+            yield {'date': filedate, 'file': datafile}
+
+
+    def __is_filerange_valid(self, filesets):
+        filedates = [fileset['date'] for fileset in filesets]
+
+        min_date = min(filedates)
+        max_date = max(filedates)
+        months_diff = datetime.months_between(min_date, max_date)
+        months = list(range(months_diff))
+        
+        expected_dates = []
+        for months_back in reversed(months):
+            expected_date = max_date - pd.DateOffset(months=months_back)
+            expected_dates.append(expected_date)
+            
+        filedates.sort()
+        expected_dates.sort()
+
+        if (filedates == expected_dates): return True
+        else: return False
+
+
+    def __get_symboldir(self, symbol):
+        symboldir = f'{self.rawdatadir}{symbol}\\'.replace('[[RANGE]]', 'monthly')
+        if not os.path.isdir(symboldir): 
+            raise Exception(f"Directory '{symboldir}' does not exist")
+        return symboldir
+
+
+    def save(self, symbol, filename, storedir, rawdir):
+        if (filename.endswith('.zip')):
+            if not is_zipfile(filename): return
+            self.__extract(filename, rawdir)
+            filename = filename.replace('zip', 'csv')
         
         sanitizer = CsvSanitizer()
-        sanitizer.clean(fn, self.csv_header) 
+        sanitizer.clean(filename, self.csv_header) 
 
-        data = pd.read_csv(fn)
+        data = pd.read_csv(filename)
         self.__sanitize(data)
-        os.remove(fn)
+        os.remove(filename)
 
-        store_file = f'{storedir}\\{sym}.h5'
+        store_file = f'{storedir}\\{symbol}.h5'
         store = tb.open_file(store_file, 'a')
         table = None
 
-        symbol_group = f'/{sym}'
+        symbol_group = f'/{symbol}'
         if store.__contains__(symbol_group) == False:
-            table = store.create_ts('/', sym, SymbolTableDescription)
+            table = store.create_ts('/', symbol, SymbolTableDescription)
         else:
             table_node = store.root.__getitem__(symbol_group)
             table = tst.get_timeseries(table_node)
@@ -66,11 +173,11 @@ class DataStore:
         if timeframe is not None:
             filename = f'{symbol}_{timeframe}.h5'
 
-        filepath = f'{self.config.storedir}{filename}'
+        filepath = f'{self.conf.storedir}{filename}'
 
         if not Path(filepath).is_file():
             print(f"File '{filename}' not found, resampling...")
-            self.resample(self.config.storedir, symbol, timeframe)
+            self.resample(self.conf.storedir, symbol, timeframe)
 
         return tb.open_file(filepath, 'a')
 
@@ -131,14 +238,3 @@ class DataStore:
         data['volume'] = pd.to_numeric(data['volume'])
 
         data.set_index('open_time', inplace = True)
-
-
-class SymbolTableDescription(tb.IsDescription):
-    timestamp = tb.Int64Col(pos = 0)
-    open = tb.Float64Col(pos = 1)
-    high = tb.Float64Col(pos = 2)
-    low = tb.Float64Col(pos = 3)
-    close = tb.Float64Col(pos = 4)
-    volume = tb.Float64Col(pos = 5)
-    log_return = tb.Float64Col(pos = 6)
-    cum_return = tb.Float64Col(pos = 7)

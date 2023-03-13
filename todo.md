@@ -40,3 +40,20 @@
 	- [ ] Port moments indicator
 	- [ ] Port hurst indicator
 	- [ ] Port historic volatility indicator
+
+
+# Notes
+
+- Sample all
+  - Take list of symbols for asset type and sample all available data
+    - Validate consistency (no missing months/days)
+    - Skip with inconsistency
+    - Sample months first
+    - Then sample days if exist
+
+
+- Append sample all
+- Sample symbol (overwrite j/n)
+- Sync sample with new data
+- Resample for tf
+- 

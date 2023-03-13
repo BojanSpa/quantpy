@@ -15,7 +15,7 @@ class GeneralConfig:
 
 
 @dataclass
-class BianceConfig(GeneralConfig):
+class BinanceConfig(GeneralConfig):
     klines_uri_monthly: str
     klines_uri_daily: str
     spot_suburi: str
@@ -33,7 +33,7 @@ class BianceConfig(GeneralConfig):
         storedir = conf['GENERAL']['StoreDir'] 
         section = conf[section_name]
         
-        return BianceConfig(
+        return BinanceConfig(
             rawdir,
             storedir,
             section['KlinesUriMonthly'],
@@ -53,7 +53,7 @@ def load_config(name='config', section=None):
     config = __get(name)
     match section:
         case 'BINANCE':
-            return BianceConfig.init(config, section)
+            return BinanceConfig.init(config, section)
         case None, _:
             raise Exception('Unknown config section')
 
